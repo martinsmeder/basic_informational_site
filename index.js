@@ -1,51 +1,45 @@
-// const axios = require("axios");
+const http = require("node:http");
+const fs = require("fs");
 
-// // GET
-// axios
-//   .get("https://google.com")
-//   .then((res) => {
-//     console.log(`statusCode: ${res.status}`);
-//     console.log(res);
-//   })
-//   .catch((error) => {
-//     console.error(error);
-//   });
+function serveHTML(fileName, res, status = 200) {
+  // Read the HTML file
+  fs.readFile(fileName, (err, data) => {
+    if (err) {
+      // If there's an error (e.g., file not found), serve the 404 page
+      return serveHTML("404.html", res, 404);
+    }
 
-// // POST
-// axios
-//   .post("https://whatever.com/todos", {
-//     todo: "Buy the milk",
-//   })
-//   .then((res) => {
-//     console.log(`statusCode: ${res.status}`);
-//     console.log(res);
-//   })
-//   .catch((error) => {
-//     console.error(error);
-//   });
+    // Set the HTTP status code
+    res.writeHead(status, { "Content-Type": "text/html" });
 
-// Import the 'http' module
-const http = require("http");
+    // Send the HTML content to the client
+    res.end(data);
+  });
+}
 
-// Create an HTTP server using createServer method
-const server = http.createServer((req, res) => {
-  // Callback function that gets executed for each incoming request (e.g.,
-  // someone trying to access the page by making an HTTP request to your
-  // server, like an API call or opening the page in a browser)
+const server = http.createServer();
 
-  // Set the response header
-  res.writeHead(200, { "Content-Type": "text/plain" });
+server.on("request", (request, res) => {
+  // Set Content-Type to HTML for all responses
+  res.setHeader("Content-Type", "text/html");
 
-  // Send a response to the client
-  res.end("Hello, World!\n");
+  // Handle different routes
+  switch (request.url) {
+    case "/":
+      serveHTML("index.html", res);
+      break;
+    case "/about":
+      serveHTML("about.html", res);
+      break;
+    case "/contact-me":
+      serveHTML("contact-me.html", res);
+      break;
+    default:
+      // If the route is not recognized, serve the 404 page
+      serveHTML("404.html", res, 404);
+  }
 });
 
-// Set the server to listen on a specific port (e.g., 3000)
-const port = 3000;
-
-// The server listens for incoming connections on the specified port
-// The callback function is executed once the server starts listening
-server.listen(port, () => {
-  // This message is logged to the console when the server starts successfully
-  console.log(`Server running at http://localhost:${port}/`);
+server.listen(8080, () => {
+  console.log("Server is running at http://localhost:8080/");
 });
